@@ -68,6 +68,47 @@ const listingSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // ── Sir wale fields ──────────────────────────────
+    brand: {
+      type: String,
+      default: "",
+    },
+    rating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    stock: {
+      type: Number,
+      default: 1,
+      min: 0,
+    },
+    discountPercentage: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    thumbnail: {
+      type: String,
+      default: "",
+    },
+    tags: [{ type: String }],
+    reviews: [
+      {
+        rating:        { type: Number, required: true },
+        comment:       { type: String, default: "" },
+        reviewerName:  { type: String, default: "Anonymous" },
+        reviewerEmail: { type: String, default: "" },
+        date:          { type: Date, default: Date.now },
+      },
+    ],
+    warrantyInformation:  { type: String, default: "" },
+    shippingInformation:  { type: String, default: "" },
+    returnPolicy:         { type: String, default: "" },
+    availabilityStatus:   { type: String, default: "In Stock" },
+    minimumOrderQuantity: { type: Number, default: 1 },
   },
   { timestamps: true }
 );

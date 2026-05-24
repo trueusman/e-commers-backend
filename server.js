@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
@@ -23,6 +24,7 @@ connectDB();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
 
 const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -77,12 +79,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 
 // ─── Middleware ───────────────────────────────────────────
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://192.168.100.65:3000",
-    "http://192.168.100.65:3001",
-  ],
+  origin: "*",
   credentials: true,
 }));
 
@@ -96,6 +93,50 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/users", userRoutes);
+
+// ─── /products route (sir wala format) ───────────────────
+const productData = require("./products.json");
+let products = productData.products;
+
+app.get("/products", (req, res) => {
+  const { q, category } = req.query;
+  let result = [...products];
+
+  if (q) {
+    const query = q.toLowerCase();
+    result = result.filter(p =>
+      p.title.toLowerCase().includes(query) ||
+      (p.description && p.description.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query))
+    );
+  }
+
+  if (category) {
+    result = result.filter(p =>
+      p.category && p.category.toLowerCase() === category.toLowerCase()
+    );
+  }
+
+  res.json({ limit: result.length, page: 1, products: result });
+});
+
+app.get("/products/search", (req, res) => {
+  const q = (req.query.q || "").toLowerCase();
+  const result = products.filter(p =>
+    p.title.toLowerCase().includes(q) ||
+    (p.description && p.description.toLowerCase().includes(q))
+  );
+  res.json({ limit: result.length, page: 1, products: result });
+});
+
+app.get("/products/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const product = products.find(p => p.id === id);
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" });
+  }
+  res.json(product);
+});
 
 // Health check
 app.get("/", (req, res) => {
