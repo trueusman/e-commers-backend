@@ -79,7 +79,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 
 // ─── Middleware ───────────────────────────────────────────
 app.use(cors({
-  origin: "*",
+  origin: FRONTEND_URL,
   credentials: true,
 }));
 
