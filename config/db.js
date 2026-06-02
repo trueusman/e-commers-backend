@@ -50,9 +50,6 @@ export default async function connectDB() {
     } catch (error) {
       console.error(`❌ MongoDB Error: ${error.message}`);
       connectPromise = null;
-      if (process.env.NODE_ENV === "production") {
-        process.exit(1);
-      }
       console.warn("⚠️  Database unavailable — auth and listings will return 503 until MongoDB connects.");
       return false;
     }

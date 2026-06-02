@@ -9,13 +9,17 @@ npm install
 npm run dev
 ```
 
+## Deploy on Render
+
+1. Connect repo [trueusman/e-commers-backend](https://github.com/trueusman/e-commers-backend)
+2. **Runtime:** Node | **Build:** `npm install` | **Start:** `npm start`
+3. **Health check path:** `/health`
+4. Set environment variables (see `.env.example`)
+5. `RENDER_EXTERNAL_URL` is set automatically by Render for `BACKEND_URL` / Google callback
+
 ## .env Variables
-```
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/bazaarhub
-JWT_SECRET=bazaarhub_super_secret_key_2024
-JWT_EXPIRE=7d
-```
+
+See `.env.example` for local and production (Render) values.
 
 ---
 

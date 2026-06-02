@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 import { isGoogleOAuthConfigured, googleOAuthConfigMessage } from "../config/googleOAuth.js";
-
 import { isCloudinaryConfigured } from "../config/cloudinary.js";
+import { FRONTEND_URL, GOOGLE_CALLBACK_URL } from "../config/env.js";
 
 import {
 
@@ -241,55 +241,30 @@ export const login = async (req, res, next) => {
 
 
 export const googleAuthStatus = (req, res) => {
-
-  const redirectUri =
-
-    process.env.GOOGLE_CALLBACK_URL ||
-
-    `http://localhost:${process.env.PORT || 5000}/api/auth/google/callback`;
-
-
+  const redirectUri = GOOGLE_CALLBACK_URL;
 
   res.json({
-
     success: true,
-
     configured: isGoogleOAuthConfigured(),
-
     cloudinaryConfigured: isCloudinaryConfigured(),
-
     message: googleOAuthConfigMessage(),
-
     redirectUri,
-
     googleConsoleHint:
-
       "In Google Cloud Console → Credentials → your OAuth client → Authorized redirect URIs, add this EXACT value (no trailing slash):",
-
-    alsoAddInConsole: [
-
-      redirectUri,
-
-      "http://127.0.0.1:5000/api/auth/google/callback",
-
-    ],
-
+    alsoAddInConsole: redirectUri ? [redirectUri] : [],
   });
-
 };
 
-
-
 export const googleCallback = (req, res) => {
-
-  const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
-
-
+  if (!FRONTEND_URL) {
+    return res.status(500).json({
+      success: false,
+      message: "FRONTEND_URL is not configured on the server",
+    });
+  }
 
   if (!req.user) {
-
     return res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
-
   }
 
 

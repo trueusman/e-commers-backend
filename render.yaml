@@ -1,0 +1,29 @@
+# Render Blueprint — optional one-click deploy
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: e-commers-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URI
+        sync: false
+      - key: BACKEND_URL
+        value: https://e-commers-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://e-comers-frontend.onrender.com
+      - key: CORS_ALLOW_RENDER_PREVIEWS
+        value: "true"
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false

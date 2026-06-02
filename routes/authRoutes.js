@@ -16,16 +16,25 @@ import uploadMemory from "../middleware/uploadMemory.js";
 import { isGoogleOAuthConfigured, googleOAuthConfigMessage } from "../config/googleOAuth.js";
 import { requireDb } from "../middleware/requireDb.js";
 import { isDbConnected } from "../config/db.js";
+import { FRONTEND_URL } from "../config/env.js";
 
 const router = express.Router();
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
+const oauthRedirect = (path) => {
+  if (!FRONTEND_URL) {
+    return null;
+  }
+  return `${FRONTEND_URL}${path}`;
+};
 
 const requireDbOAuth = (req, res, next) => {
   if (isDbConnected()) return next();
-  const message = encodeURIComponent(
-    "Database is not connected. Check MongoDB Atlas and restart the backend."
-  );
-  return res.redirect(`${FRONTEND_URL}/auth/google/callback?error=google_failed&message=${message}`);
+  const target = oauthRedirect("/auth/google/callback?error=google_failed&message=" +
+    encodeURIComponent("Database is not connected. Check MongoDB Atlas."));
+  if (!target) {
+    return res.status(503).json({ success: false, message: "FRONTEND_URL is not configured" });
+  }
+  return res.redirect(target);
 };
 
 router.post("/register", requireDb, uploadMemory.single("avatar"), register);
@@ -59,10 +68,18 @@ router.get("/google/callback", requireDbOAuth, (req, res, next) => {
     if (err) {
       console.error("Google OAuth error:", err.message);
       const message = encodeURIComponent(err.message || "Google sign-in failed");
-      return res.redirect(`${FRONTEND_URL}/auth/google/callback?error=google_failed&message=${message}`);
+      const errTarget = oauthRedirect(`/auth/google/callback?error=google_failed&message=${message}`);
+      if (!errTarget) {
+        return res.status(503).json({ success: false, message: "FRONTEND_URL is not configured" });
+      }
+      return res.redirect(errTarget);
     }
     if (!user) {
-      return res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+      const failTarget = oauthRedirect("/login?error=google_failed");
+      if (!failTarget) {
+        return res.status(503).json({ success: false, message: "FRONTEND_URL is not configured" });
+      }
+      return res.redirect(failTarget);
     }
     req.user = user;
     return googleCallback(req, res);

@@ -1,3 +1,5 @@
+import { GOOGLE_CALLBACK_URL } from "./env.js";
+
 /** Detect placeholder / unset Google OAuth credentials */
 const PLACEHOLDER_MARKERS = [
   "PASTE",
@@ -28,9 +30,9 @@ export function googleOAuthConfigMessage() {
   if (isGoogleOAuthConfigured()) {
     return "Google Sign-In is configured.";
   }
+  const redirectHint = GOOGLE_CALLBACK_URL || "Set BACKEND_URL or GOOGLE_CALLBACK_URL";
   return (
-    "Google OAuth is not configured. In e-commerce-backend/.env set GOOGLE_CLIENT_ID and " +
-    "GOOGLE_CLIENT_SECRET from Google Cloud Console. " +
-    "Redirect URI: http://localhost:5000/api/auth/google/callback"
+    "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET. " +
+    `Redirect URI: ${redirectHint}`
   );
 }
