@@ -19,7 +19,9 @@ export const BACKEND_URL = stripTrailingSlash(
 );
 
 /** Deployed frontend (Render) — CORS + OAuth redirects */
-export const FRONTEND_URL = stripTrailingSlash(process.env.FRONTEND_URL || "");
+export const FRONTEND_URL = stripTrailingSlash(
+  process.env.FRONTEND_URL || process.env.CLIENT_URL || ""
+);
 
 function resolveGoogleCallbackUrl() {
   const fromEnv = process.env.GOOGLE_CALLBACK_URL?.trim();
@@ -75,6 +77,13 @@ export function getAllowedOrigins() {
 
 export function isOriginAllowed(origin) {
   if (!origin) return true;
+
+  if (
+    !isProduction &&
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+  ) {
+    return true;
+  }
 
   const normalized = stripTrailingSlash(origin);
   if (getAllowedOrigins().includes(normalized)) return true;

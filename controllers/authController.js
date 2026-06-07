@@ -5,6 +5,8 @@ import User from "../models/User.js";
 import { isGoogleOAuthConfigured, googleOAuthConfigMessage } from "../config/googleOAuth.js";
 import { isCloudinaryConfigured } from "../config/cloudinary.js";
 import { FRONTEND_URL, GOOGLE_CALLBACK_URL } from "../config/env.js";
+import { setAuthCookie, clearAuthCookie } from "../middleware/auth.js";
+import { validatePassword } from "../utils/passwordValidator.js";
 
 import {
 
@@ -50,6 +52,18 @@ export const register = async (req, res, next) => {
 
       });
 
+    }
+
+
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Password does not meet requirements",
+        errors: passwordValidation.errors,
+      });
     }
 
 
@@ -129,6 +143,7 @@ export const register = async (req, res, next) => {
 
 
     const token = generateToken(user._id);
+    setAuthCookie(res, token);
 
 
 
@@ -137,8 +152,6 @@ export const register = async (req, res, next) => {
       success: true,
 
       message: "Account created successfully",
-
-      token,
 
       user: user.toSafeObject(),
 
@@ -215,6 +228,7 @@ export const login = async (req, res, next) => {
 
 
     const token = generateToken(user._id);
+    setAuthCookie(res, token);
 
 
 
@@ -223,8 +237,6 @@ export const login = async (req, res, next) => {
       success: true,
 
       message: "Login successful",
-
-      token,
 
       user: user.toSafeObject(),
 
@@ -273,6 +285,12 @@ export const googleCallback = (req, res) => {
 
   return res.redirect(`${FRONTEND_URL}/auth/google/callback?token=${token}`);
 
+};
+
+// @route   POST /api/auth/logout
+export const logout = (req, res) => {
+  clearAuthCookie(res);
+  return res.json({ success: true, message: "Logged out successfully" });
 };
 
 

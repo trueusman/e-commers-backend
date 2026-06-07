@@ -3,6 +3,7 @@ import passport from "passport";
 import {
   register,
   login,
+  logout,
   getMe,
   updateProfile,
   updateAvatar,
@@ -39,6 +40,7 @@ const requireDbOAuth = (req, res, next) => {
 
 router.post("/register", requireDb, uploadMemory.single("avatar"), register);
 router.post("/login", requireDb, login);
+router.post("/logout", logout);
 router.get("/me", requireDb, protect, getMe);
 router.put("/update-profile", requireDb, protect, updateProfile);
 router.put("/avatar", requireDb, protect, uploadMemory.single("avatar"), updateAvatar);

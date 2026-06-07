@@ -62,6 +62,28 @@ See `.env.example` for local and production (Render) values.
 | GET | `/` | Admin | Get all users |
 | DELETE | `/:id` | Admin | Delete user |
 
+### Products (MongoDB)  `/products`
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/` | List products (pagination) |
+| GET | `/search?q=` | Search products |
+| GET | `/:id` | Get product by id |
+| POST | `/` | Create product (image + Cloudinary) |
+| PUT | `/:id` | Update product |
+| DELETE | `/:id` | Delete product |
+
+### Upload (Cloudinary)  `/upload`
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/` | Upload single image |
+| POST | `/multiple` | Upload up to 5 images |
+
+### MongoDB users  `/mongodb`
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/` | List users |
+| POST | `/` | Create user |
+
 ---
 
 ## Auth Header

@@ -80,4 +80,23 @@ export async function verifyCloudinaryConnection() {
   }
 }
 
+const PRODUCT_FOLDER = process.env.CLOUDINARY_PRODUCT_FOLDER || "ecommerce-products";
+
+export function uploadToCloudinary(buffer, folder = PRODUCT_FOLDER) {
+  if (!isCloudinaryConfigured()) {
+    return Promise.reject(new Error("Cloudinary is not configured on the server"));
+  }
+
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image" },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+}
+
 export { cloudinary };

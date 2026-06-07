@@ -1,9 +1,9 @@
 import "./config/loadEnv.js";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createRequire } from "module";
 import connectDB, { isDbConnected } from "./config/db.js";
 import { configureCloudinary, isCloudinaryConfigured, verifyCloudinaryConnection } from "./config/cloudinary.js";
 import { configureGooglePassport } from "./config/passportGoogle.js";
@@ -22,11 +22,14 @@ import errorHandler from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import usmanRoutes from "./routes/usman.js";
+import mongoDbRoutes from "./routes/mongodbRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const require = createRequire(import.meta.url);
 
 assertProductionEnv();
 
@@ -53,57 +56,17 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/users", userRoutes);
-
-const productData = require("./products.json");
-let products = productData.products;
-
-app.get("/products", (req, res) => {
-  const { q, category } = req.query;
-  let result = [...products];
-
-  if (q) {
-    const query = q.toLowerCase();
-    result = result.filter(
-      (p) =>
-        p.title.toLowerCase().includes(query) ||
-        (p.description && p.description.toLowerCase().includes(query)) ||
-        (p.category && p.category.toLowerCase().includes(query))
-    );
-  }
-
-  if (category) {
-    result = result.filter(
-      (p) => p.category && p.category.toLowerCase() === category.toLowerCase()
-    );
-  }
-
-  res.json({ limit: result.length, page: 1, products: result });
-});
-
-app.get("/products/search", (req, res) => {
-  const q = (req.query.q || "").toLowerCase();
-  const result = products.filter(
-    (p) =>
-      p.title.toLowerCase().includes(q) ||
-      (p.description && p.description.toLowerCase().includes(q))
-  );
-  res.json({ limit: result.length, page: 1, products: result });
-});
-
-app.get("/products/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const product = products.find((p) => p.id === id);
-  if (!product) {
-    return res.status(404).json({ message: "Product not found" });
-  }
-  res.json(product);
-});
+app.use("/api/usman", usmanRoutes);
+app.use("/mongodb", mongoDbRoutes);
+app.use("/upload", uploadRoutes);
+app.use("/products", productRoutes);
 
 app.get("/health", (req, res) => {
   res.json({
@@ -123,6 +86,9 @@ app.get("/", (req, res) => {
       auth: "/api/auth",
       listings: "/api/listings",
       users: "/api/users",
+      products: "/products",
+      upload: "/upload",
+      mongodb: "/mongodb",
     },
   });
 });
