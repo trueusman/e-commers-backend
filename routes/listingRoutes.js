@@ -9,7 +9,7 @@ import {
   getFeaturedListings,
 } from "../controllers/listingController.js";
 import { protect } from "../middleware/auth.js";
-import upload from "../middleware/upload.js";
+import uploadMemory from "../middleware/uploadMemory.js";
 
 const router = express.Router();
 
@@ -18,8 +18,8 @@ router.get("/", getListings);
 router.get("/featured", getFeaturedListings);
 router.get("/user/my-listings", protect, getMyListings);
 router.get("/:id", getListing);
-router.post("/", protect, upload.array("images", 10), createListing);
-router.put("/:id", protect, upload.array("images", 10), updateListing);
+router.post("/", protect, uploadMemory.array("images", 5), createListing);
+router.put("/:id", protect, uploadMemory.array("images", 5), updateListing);
 router.delete("/:id", protect, deleteListing);
 
 export default router;

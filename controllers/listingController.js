@@ -1,4 +1,5 @@
 import Listing from "../models/Listing.js";
+import { uploadToCloudinary, isCloudinaryConfigured } from "../config/cloudinary.js";
 
 // @desc    Get all listings with filters
 // @route   GET /api/listings
@@ -114,11 +115,24 @@ export const createListing = async (req, res, next) => {
     const rawCategory = (req.body.category || "").toLowerCase().trim();
     const category = CATEGORY_MAP[rawCategory] ?? "other";
 
-    // Handle uploaded images (multipart) or JSON image URLs
+    // ── Handle images ──
     let images = [];
+
     if (req.files && req.files.length > 0) {
-      images = req.files.map((f) => `/uploads/${f.filename}`);
-    } else if (Array.isArray(req.body.images)) {
+      if (isCloudinaryConfigured()) {
+        // Upload each file buffer to Cloudinary
+        const uploads = await Promise.all(
+          req.files.map((file) => uploadToCloudinary(file.buffer))
+        );
+        images = uploads.map((r) => r.secure_url);
+      } else {
+        // Cloudinary not configured — save to local /uploads/ disk
+        images = req.files.map(
+          (f) => `${process.env.BACKEND_URL || ""}/uploads/${f.filename}`
+        );
+      }
+    } else if (Array.isArray(req.body.images) && req.body.images.length > 0) {
+      // Already-uploaded URLs passed as JSON
       images = req.body.images;
     }
 
