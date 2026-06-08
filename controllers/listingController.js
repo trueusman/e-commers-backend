@@ -92,10 +92,35 @@ export const getListing = async (req, res, next) => {
 // @access  Private
 export const createListing = async (req, res, next) => {
   try {
-    const { title, description, price, category, condition, location, phone } = req.body;
+    const { title, description, price, condition, location, phone } = req.body;
 
-    // Handle uploaded images
-    const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
+    // Normalize category to valid enum — handles old slugs from any frontend version
+    const CATEGORY_MAP = {
+      electronics: "electronics", smartphones: "electronics", laptops: "electronics",
+      tablets: "electronics", "mobile-accessories": "electronics", accessories: "electronics",
+      vehicles: "vehicles", vehicle: "vehicles", motorcycle: "vehicles",
+      motorcycles: "vehicles", cars: "vehicles", car: "vehicles",
+      property: "property",
+      fashion: "fashion", beauty: "fashion", "skin-care": "fashion",
+      "womens-dresses": "fashion", "womens-bags": "fashion", bags: "fashion",
+      watches: "fashion", jewellery: "fashion",
+      furniture: "furniture", "home-decoration": "furniture", "home-decor": "furniture",
+      "kitchen-accessories": "other",
+      books: "books",
+      sports: "sports", "sports-accessories": "sports",
+      jobs: "jobs",
+      other: "other",
+    };
+    const rawCategory = (req.body.category || "").toLowerCase().trim();
+    const category = CATEGORY_MAP[rawCategory] ?? "other";
+
+    // Handle uploaded images (multipart) or JSON image URLs
+    let images = [];
+    if (req.files && req.files.length > 0) {
+      images = req.files.map((f) => `/uploads/${f.filename}`);
+    } else if (Array.isArray(req.body.images)) {
+      images = req.body.images;
+    }
 
     const listing = await Listing.create({
       title,
