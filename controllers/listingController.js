@@ -121,19 +121,24 @@ export const createListing = async (req, res, next) => {
     if (req.files && req.files.length > 0) {
       if (isCloudinaryConfigured()) {
         // Upload each file buffer to Cloudinary
-        const uploads = await Promise.all(
-          req.files.map((file) => uploadToCloudinary(file.buffer))
-        );
-        images = uploads.map((r) => r.secure_url);
+        try {
+          const uploads = await Promise.all(
+            req.files.map((file) => uploadToCloudinary(file.buffer))
+          );
+          images = uploads.map((r) => r.secure_url);
+        } catch (uploadErr) {
+          console.error("Cloudinary upload error:", uploadErr.message);
+          // Continue without images rather than failing the whole listing
+          images = [];
+        }
       } else {
-        // Cloudinary not configured — save to local /uploads/ disk
-        images = req.files.map(
-          (f) => `${process.env.BACKEND_URL || ""}/uploads/${f.filename}`
-        );
+        // Cloudinary not configured — log warning, skip images
+        console.warn("⚠️  Images not saved: Cloudinary not configured. Add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET to Render env vars.");
+        images = [];
       }
     } else if (Array.isArray(req.body.images) && req.body.images.length > 0) {
       // Already-uploaded URLs passed as JSON
-      images = req.body.images;
+      images = req.body.images.filter((url) => typeof url === "string" && url.startsWith("http"));
     }
 
     const listing = await Listing.create({
