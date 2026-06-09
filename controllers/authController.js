@@ -69,17 +69,8 @@ export const register = async (req, res, next) => {
 
 
     if (req.file && !isCloudinaryConfigured()) {
-
-      return res.status(503).json({
-
-        success: false,
-
-        message:
-          "Image upload is unavailable. Set CLOUDINARY_URL in backend .env (from Cloudinary Dashboard → API environment variable) or set CLOUDINARY_CLOUD_NAME + API keys.",
-        help: "https://console.cloudinary.com",
-
-      });
-
+      // Cloudinary not configured — skip avatar upload, use generated default
+      req.file = undefined;
     }
 
 
